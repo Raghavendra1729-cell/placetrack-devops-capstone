@@ -1,0 +1,10 @@
+$ kubectl -n placetrack patch svc tb-svc -p '{"spec":{"selector":{"app":"tb-svc"}}}'
+service/tb-svc patched
+
+$ kubectl -n placetrack get endpoints tb-svc
+NAME     ENDPOINTS        AGE
+tb-svc   10.244.0.22:80   27s
+
+$ kubectl -n placetrack run curl-test --rm -i --restart=Never --image=curlimages/curl -- curl -sS -m 5 -o /dev/null -w "HTTP %{http_code}
+" http://tb-svc
+HTTP 200

@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: tb-svc, namespace: placetrack }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: tb-svc } }
+  template:
+    metadata: { labels: { app: tb-svc } }
+    spec:
+      containers: [{ name: web, image: "nginx:1.30.5-alpine" }]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: tb-svc, namespace: placetrack }
+spec:
+  selector: { app: tb-service }
+  ports: [{ port: 80 }]

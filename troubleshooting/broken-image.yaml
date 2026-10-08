@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: tb-image, namespace: placetrack }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: tb-image } }
+  template:
+    metadata: { labels: { app: tb-image } }
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/raghavendra1729-cell/placetrack-backend:does-not-exist

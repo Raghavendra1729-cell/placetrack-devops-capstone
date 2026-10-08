@@ -4,7 +4,10 @@ prometheus:
     retention: 6h
     resources: { requests: { cpu: 100m, memory: 400Mi } }
 grafana:
-  adminPassword: REMOVED-demo-value   # demo-only password for a throwaway cluster
+  admin:
+    existingSecret: grafana-admin     # created by install.sh with a random password
+    userKey: admin-user
+    passwordKey: admin-password
   sidecar:
     dashboards: { enabled: true, label: grafana_dashboard }
 alertmanager:
