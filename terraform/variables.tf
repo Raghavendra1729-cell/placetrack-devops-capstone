@@ -17,3 +17,8 @@ variable "node_instance_type" {
   type    = string
   default = "t3.medium"
 }
+
+variable "api_access_cidrs" {
+  type        = list(string)
+  description = "CIDR blocks allowed to reach the public EKS API endpoint (your own IP, e.g. [\"203.0.113.10/32\"])."
+}
