@@ -3,6 +3,6 @@
 set -euo pipefail
 tag="${1:?usage: deploy.sh <image-tag>}"; shift
 kubectl apply -f k8s/namespace.yaml
-helm upgrade --install placetrack helm/placetrack -n placetrack \
+helm upgrade --install placetrack helm/placetrack -n placetrack --reuse-values \
   --set image.tag="$tag" --wait --timeout 300s "$@"
 kubectl -n placetrack get pods

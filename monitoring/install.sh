@@ -9,7 +9,7 @@ if ! kubectl -n monitoring get secret grafana-admin >/dev/null 2>&1; then
 fi
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts >/dev/null
 helm repo update >/dev/null
-helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+helm upgrade --install monitoring prometheus-community/kube-prometheus-stack --version 92.1.1 \
   -n monitoring -f monitoring/values.yaml --wait --timeout 600s
 kubectl -n monitoring create configmap placetrack-dashboard \
   --from-file=placetrack.json=monitoring/grafana-dashboard.json --dry-run=client -o yaml | kubectl apply -f -
