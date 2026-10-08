@@ -121,7 +121,9 @@ The AWS Console shows the VPC with its two public subnets, and the EKS cluster:
 
 ![AWS EKS](images/12-aws-eks.png)
 
-Status: the `terraform destroy` output is still to add.
+After the screenshots I ran `terraform destroy` so nothing keeps billing. It removed everything, and a check afterwards shows no cluster, VPC or instances left in the region:
+
+![terraform destroy](images/10-tf-destroy.png)
 
 ## M8 Kubernetes and Helm
 
