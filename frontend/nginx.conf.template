@@ -2,8 +2,12 @@ server {
     listen 8080;
     root /usr/share/nginx/html;
 
+    # Resolve the backend at request time so nginx still starts when its DNS name is not available yet.
+    resolver ${NGINX_LOCAL_RESOLVERS} valid=10s;
+    set $backend ${BACKEND_URL};
+
     location /api/ {
-        proxy_pass ${BACKEND_URL};
+        proxy_pass $backend;
         proxy_set_header Host $host;
     }
 

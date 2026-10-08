@@ -1,0 +1,33 @@
+image:
+  registry: ghcr.io/raghavendra1729-cell
+  tag: local            # overridden with the commit SHA
+  pullPolicy: IfNotPresent
+
+backend:
+  replicas: 2
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits: { cpu: 500m, memory: 256Mi }
+
+frontend:
+  replicas: 2
+  resources:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits: { cpu: 200m, memory: 128Mi }
+
+postgres:
+  image: postgres:16-alpine
+  storage: 1Gi
+
+ingress:
+  className: nginx
+  host: ""              # empty = match any host (used on EKS)
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 60
+
+serviceMonitor:
+  enabled: false        # needs the Prometheus Operator CRDs (monitoring stack)
