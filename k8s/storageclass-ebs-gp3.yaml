@@ -9,5 +9,6 @@ metadata:
 provisioner: ebs.csi.aws.com
 parameters:
   type: gp3
+  encrypted: "true"
 volumeBindingMode: WaitForFirstConsumer
 reclaimPolicy: Delete
