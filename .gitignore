@@ -12,3 +12,5 @@ dist/
 *.tfvars
 !*.tfvars.example
 .DS_Store
+tfplan
+*.tfplan
