@@ -115,7 +115,13 @@ Both nodes are Ready and the system pods (CNI, CoreDNS, kube-proxy) are running:
 
 ![EKS nodes](images/12b-eks-nodes.png)
 
-Status: the AWS Console screenshots (VPC and EKS) and the `terraform destroy` output are still to add.
+The AWS Console shows the VPC with its two public subnets, and the EKS cluster:
+
+![AWS VPC](images/11-aws-vpc.png)
+
+![AWS EKS](images/12-aws-eks.png)
+
+Status: the `terraform destroy` output is still to add.
 
 ## M8 Kubernetes and Helm
 
