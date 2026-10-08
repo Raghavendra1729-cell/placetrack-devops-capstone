@@ -27,6 +27,11 @@ export default function App() {
 
   useEffect(() => { load(); }, [load]);
 
+  function openForm(job) {
+    setError("");
+    setForm(job);
+  }
+
   async function save(e) {
     e.preventDefault();
     const { id, ...payload } = form;
@@ -40,8 +45,12 @@ export default function App() {
   }
 
   async function remove(id) {
-    await api.remove(id);
-    load();
+    try {
+      await api.remove(id);
+      load();
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   return (
@@ -51,10 +60,10 @@ export default function App() {
           <h1>PlaceTrack</h1>
           <p>Track every job application in one place</p>
         </div>
-        <button className="primary" onClick={() => setForm(EMPTY)}>+ Add application</button>
+        <button className="primary" onClick={() => openForm(EMPTY)}>+ Add application</button>
       </header>
 
-      {error && <div className="error">Could not reach the API: {error}</div>}
+      {error && !form && <div className="error">{error}</div>}
 
       <section className="cards">
         {["total", ...STATUSES].map((key) => (
@@ -89,7 +98,7 @@ export default function App() {
                 <td>{j.applied_on}</td>
                 <td>{j.notes}</td>
                 <td className="actions">
-                  <button onClick={() => setForm(j)}>Edit</button>
+                  <button onClick={() => openForm(j)}>Edit</button>
                   <button className="danger" onClick={() => remove(j.id)}>Delete</button>
                 </td>
               </tr>
@@ -102,8 +111,9 @@ export default function App() {
         <div className="overlay" onClick={() => setForm(null)}>
           <form className="modal" onClick={(e) => e.stopPropagation()} onSubmit={save}>
             <h2>{form.id ? "Edit application" : "New application"}</h2>
-            <label>Company<input required value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} /></label>
-            <label>Role<input required value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} /></label>
+            {error && <div className="error">{error}</div>}
+            <label>Company<input required maxLength={120} value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} /></label>
+            <label>Role<input required maxLength={120} value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} /></label>
             <label>Status
               <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
                 {STATUSES.map((s) => <option key={s}>{s}</option>)}
