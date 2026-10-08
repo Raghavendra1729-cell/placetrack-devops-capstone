@@ -2,7 +2,7 @@ server {
     listen 8080;
     root /usr/share/nginx/html;
 
-    # Resolve the backend at request time so nginx still starts when its DNS name is not available yet.
+    # resolved per request, so nginx starts even if the backend is down
     resolver ${NGINX_LOCAL_RESOLVERS} valid=10s;
     set $backend ${BACKEND_URL};
 

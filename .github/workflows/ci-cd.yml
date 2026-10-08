@@ -5,14 +5,12 @@ on:
     branches: [main]
   pull_request:
 
-# Least privilege by default; only the image job may write packages.
 permissions:
   contents: read
 
 env:
   REGISTRY: ghcr.io/raghavendra1729-cell
 
-# Third-party actions are pinned to commit SHAs (tag shown in the comment).
 jobs:
   test:
     runs-on: ubuntu-latest

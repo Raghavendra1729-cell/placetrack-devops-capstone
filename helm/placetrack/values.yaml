@@ -1,6 +1,6 @@
 image:
   registry: ghcr.io/raghavendra1729-cell
-  tag: local            # overridden with the commit SHA
+  tag: local
   pullPolicy: IfNotPresent
 
 backend:
@@ -18,11 +18,11 @@ frontend:
 postgres:
   image: postgres:16-alpine
   storage: 1Gi
-  storageClass: ""      # empty = cluster default (minikube); on EKS use ebs-gp3 from k8s/storageclass-ebs-gp3.yaml
+  storageClass: ""
 
 ingress:
   className: nginx
-  host: ""              # empty = match any host (used on EKS)
+  host: ""
 
 hpa:
   enabled: true
@@ -31,4 +31,4 @@ hpa:
   targetCPUUtilizationPercentage: 60
 
 serviceMonitor:
-  enabled: false        # needs the Prometheus Operator CRDs (monitoring stack)
+  enabled: false

@@ -1,6 +1,6 @@
 # Troubleshooting exercises
 
-Two faults were introduced on purpose in the `placetrack` namespace of the local minikube cluster. Each one followed the same five steps: identify, investigate, root cause, fix, verify. The command output below is copied from real runs (see [`outputs/`](outputs/)).
+I broke two things on purpose in the `placetrack` namespace of the local minikube cluster and fixed them with the same five steps each time: identify, investigate, root cause, fix, verify. The output below is from the real runs in [`outputs/`](outputs/).
 
 ## 1. Bad image tag (`broken-image.yaml`)
 
@@ -59,7 +59,3 @@ kubectl -n placetrack patch svc tb-svc -p '{"spec":{"selector":{"app":"tb-svc"}}
 ```
 
 **Verify.** The endpoint list now contains the Pod IP and a request through the Service returns `HTTP 200` ([`outputs/04-service-fixed.txt`](outputs/04-service-fixed.txt)).
-
-## Takeaway
-
-`Running` does not mean reachable. Check `READY`, then `describe` for events, then compare Service selectors with Pod labels via `get endpoints`.

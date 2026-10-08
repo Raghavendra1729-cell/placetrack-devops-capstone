@@ -1,5 +1,4 @@
-# EKS only: a gp3 StorageClass backed by the EBS CSI driver (installed by Terraform).
-# New EKS clusters may not have a default StorageClass, so the Postgres volume would stay Pending.
+# EKS only: default gp3 class for the Postgres volume
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:

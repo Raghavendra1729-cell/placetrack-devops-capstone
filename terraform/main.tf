@@ -53,7 +53,6 @@ module "eks" {
   }
 }
 
-# The EBS CSI driver gets its own role, usable only by its service account (not by every pod on the nodes).
 module "ebs_csi_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "~> 5.48"

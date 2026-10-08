@@ -8,7 +8,7 @@ export default function App() {
   const [jobs, setJobs] = useState([]);
   const [stats, setStats] = useState(null);
   const [filter, setFilter] = useState("");
-  const [form, setForm] = useState(null); // null = closed, object = open (id present when editing)
+  const [form, setForm] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 

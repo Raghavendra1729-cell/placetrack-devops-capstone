@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-# Installs kube-prometheus-stack and the PlaceTrack Grafana dashboard.
-# The Grafana admin password is generated once and kept only in the cluster:
-#   kubectl -n monitoring get secret grafana-admin -o jsonpath='{.data.admin-password}' | base64 -d
+# Installs kube-prometheus-stack and the PlaceTrack dashboard.
+# Grafana password: kubectl -n monitoring get secret grafana-admin -o jsonpath='{.data.admin-password}' | base64 -d
 set -euo pipefail
 kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f - >/dev/null
 if ! kubectl -n monitoring get secret grafana-admin >/dev/null 2>&1; then
