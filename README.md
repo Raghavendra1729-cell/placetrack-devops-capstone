@@ -107,13 +107,13 @@ docker compose up --build
 
 Third-party actions are pinned to commit SHAs, and the workflow token is read-only except for the `image` job, which needs `packages: write`.
 
-> **Status:** this repository has not been pushed to GitHub yet, so there is no Actions run URL or GHCR page to show. Every step of the pipeline was run locally instead: `pytest` (above), `npm run build`, `docker build`, Trivy and Gitleaks. The workflow file is committed and validated as YAML. Once pushed, add the run link and a GHCR screenshot here.
+> **Status:** this repository has not been pushed to GitHub yet, so there is no Actions run URL or GHCR page to show. The pipeline's test, build and scan steps were run locally instead: `pytest` (above), `npm run build`, `docker build` and Trivy (Gitleaks was run as an extra check). The GHCR login and push steps need GitHub and have not run. The workflow file is committed and validated as YAML. Once pushed, add the run link and a GHCR screenshot here.
 
 ## M6 — DevSecOps (Trivy)
 
 The pipeline fails on fixable HIGH or CRITICAL vulnerabilities (`severity: HIGH,CRITICAL`, `ignore-unfixed: true`, `exit-code: 1`) in **both** images.
 
-My first scan failed the gate. The backend image had **3 HIGH** findings in Starlette 0.41.3 (pulled in by the FastAPI version I had pinned), for example **CVE-2025-62727**, a denial of service through crafted `Range` headers. The frontend image, built on an older Alpine nginx, had **40 HIGH and 2 CRITICAL** findings in system libraries such as OpenSSL (`libssl3`, CVE-2026-31789, a heap buffer overflow) and libexpat/libxml2.
+My first scan failed the gate. The backend image had **3 HIGH** findings in Starlette 0.41.3 (pulled in by the FastAPI version I had pinned), for example **CVE-2025-62727**, a denial of service through crafted `Range` headers. The frontend image, built on an older Alpine nginx, had **40 HIGH and 2 CRITICAL** findings in system libraries such as OpenSSL (`libssl3`, CVE-2026-31789, a heap buffer overflow on 32-bit systems) and libexpat/libxml2.
 
 Fixing them properly instead of ignoring them: upgraded FastAPI (which brings Starlette 1.7.0) and the rest of the Python pins, and moved the frontend to `nginx-unprivileged:1.30.5-alpine` on Alpine 3.24. Both images now scan clean (exit code 0).
 
@@ -153,7 +153,38 @@ terraform plan -out=tfplan      # Plan: 53 to add, 0 to change, 0 to destroy
 * a Postgres StatefulSet with a persistent volume, a generated database Secret, and a post-install **Alembic migration Job**;
 * an HPA for the backend (2–4 pods at 60% CPU).
 
-Tested on minikube (`helm upgrade --install placetrack helm/placetrack -n placetrack --wait`):
+### Deploy on minikube
+
+```bash
+minikube start -p placetrack --driver=docker --cpus=4 --memory=5500
+minikube -p placetrack addons enable ingress
+minikube -p placetrack addons enable metrics-server
+docker build -t ghcr.io/raghavendra1729-cell/placetrack-backend:local backend
+docker build -t ghcr.io/raghavendra1729-cell/placetrack-frontend:local frontend
+minikube -p placetrack image load ghcr.io/raghavendra1729-cell/placetrack-backend:local ghcr.io/raghavendra1729-cell/placetrack-frontend:local
+kubectl apply -f k8s/namespace.yaml
+helm upgrade --install placetrack helm/placetrack -n placetrack --set ingress.host= --wait --timeout 300s
+kubectl -n ingress-nginx port-forward svc/ingress-nginx-controller 8080:80   # then open http://localhost:8080
+```
+
+`--set ingress.host=` makes the Ingress match any host so `localhost` works; set a host such as `placetrack.local` if you map it in `/etc/hosts`. The generated database Secret and the Postgres volume are both kept on `helm uninstall`; to start from scratch also run `kubectl -n placetrack delete secret placetrack-db pvc data-placetrack-postgres-0`.
+
+### Deploy on EKS (after `terraform apply`)
+
+The images must have been pushed by CI, and the two GHCR packages set to Public so the cluster can pull them.
+
+```bash
+aws eks update-kubeconfig --region ap-south-1 --name placetrack
+kubectl apply -f k8s/storageclass-ebs-gp3.yaml      # gives the Postgres volume a default class
+helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx -n ingress-nginx --create-namespace --wait
+helm upgrade --install metrics-server metrics-server --repo https://kubernetes-sigs.github.io/metrics-server/ -n kube-system --wait
+scripts/deploy.sh <commit-sha> --set image.pullPolicy=Always --set postgres.storageClass=ebs-gp3
+kubectl -n ingress-nginx get svc ingress-nginx-controller   # EXTERNAL-IP is the app URL
+```
+
+Run `helm uninstall ingress-nginx -n ingress-nginx` before `terraform destroy` so the load balancer is removed.
+
+Tested on minikube (output below):
 
 ![kubectl get pods](images/13-kubectl-pods.png)
 
@@ -203,8 +234,24 @@ Two faults were introduced and fixed on the live cluster; full write-ups with th
 ## Lessons learned
 
 * **A passing build is not a secure build.** Trivy found 3 HIGH CVEs in the backend and 42 HIGH/CRITICAL in the frontend base image on the very first scan; keeping dependencies and base images current was the fix.
-* **nginx resolves `proxy_pass` hostnames once at startup.** The frontend pods crashed and restarted at install time because the backend Service name was not resolvable yet. Using a runtime resolver (`resolver` + a variable) removed the crash loop.
+* **nginx resolves `proxy_pass` hostnames once at startup, and its `resolver` ignores DNS search domains.** The frontend pods crashed at install time because the backend Service name was not resolvable yet; a runtime resolver removed the crash loop, but the short name `placetrack-backend` still did not resolve, so `/api` through the frontend Service returned 502. An independent review caught it; using the fully qualified name `<svc>.<namespace>.svc.cluster.local` fixed it (502 became 200).
 * **`Running` is not `Ready`, and `Ready` is not reachable.** A Service selector typo left a healthy pod with no endpoints.
 * **Prometheus needs a config reload.** The new ServiceMonitor was only scraped after Prometheus reloaded its configuration.
+* **A generated Secret must outlive the release that created it.** After `helm uninstall` the Postgres volume kept the old password, so a reinstall generated a new one and the backend could no longer log in. Annotating the Secret with `helm.sh/resource-policy: keep` fixed it.
 * **Never commit secrets.** The database password is generated by Helm, the Grafana password by the install script, and Terraform values live in a git-ignored file.
 * **Automated security review catches real mistakes.** It flagged workflow permissions, unpinned actions, an open EKS API endpoint and a hardcoded password, all fixed.
+
+## Rubric evidence map
+
+| Module | Where to look | Status |
+|---|---|---|
+| M1 Application | `backend/app/`, `backend/alembic/versions/`, `frontend/`, `docker-compose.yml`, `images/01-app-compose.png`, `images/01b-app-mobile.png` | Done |
+| M2 Testing | `backend/tests/`, `backend/pytest.ini`, `images/02-pytest.png` | Done (16 passing) |
+| M3 Git | `git log`, `.gitignore`, `images/04-git-log.png` | Done locally; public GitHub URL after the first push |
+| M4 Docker | `backend/Dockerfile`, `frontend/Dockerfile`, `docker-compose.yml`, `images/03-compose-up.png`, `images/01-app-compose.png` | Done |
+| M5 CI/CD | `.github/workflows/ci-cd.yml` | Workflow committed; Actions run link and GHCR screenshot pending the first push |
+| M6 Trivy | Trivy step in the workflow, `docs/trivy-explanation.md`, `images/05-trivy-before.png`, `images/07-trivy-clean.png` | Done locally (before and after); CI run pending the first push |
+| M7 Terraform | `terraform/`, `images/08-tf-plan.png` | `init`, `validate`, `plan` done; apply, AWS Console screenshots and destroy pending |
+| M8 Kubernetes + Helm | `k8s/`, `helm/placetrack/`, `images/13-15`, `images/16-app-ingress.png` | Done on minikube |
+| M9 Observability | `monitoring/`, `images/17-metrics.png`, `images/18-prom-targets.png`, `images/19-grafana.png` | Done |
+| M10 Docs and demo | this README, `docs/PlaceTrack-Capstone.pptx`, `docs/speaker-script.md`, `docs/live-demo.md` | README and deck done; live demo is performed on camera |

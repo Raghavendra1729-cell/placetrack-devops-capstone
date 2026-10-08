@@ -17,7 +17,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports: [{ name: http, containerPort: 8080 }]
           env:
-            - { name: BACKEND_URL, value: "http://{{ .Release.Name }}-backend:8000" }
+            - { name: BACKEND_URL, value: "http://{{ .Release.Name }}-backend.{{ .Release.Namespace }}.svc.cluster.local:8000" }
           readinessProbe: { httpGet: { path: /, port: http }, periodSeconds: 5 }
           resources: {{- toYaml .Values.frontend.resources | nindent 12 }}
 ---

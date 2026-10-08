@@ -18,4 +18,13 @@ Prerequisites (before recording): repository pushed to GitHub, GHCR packages set
    ```
 6. **Refresh the browser** and show the new subtitle.
 
-If the push is not possible on camera, do steps 2, 3 and 5 locally with `docker build` and `scripts/deploy.sh local` (minikube image load) and explain that CI does the build and push in the real flow.
+If the push is not possible on camera, use a fresh image tag so Helm actually rolls the pods (reusing the tag `local` changes nothing and nothing restarts):
+
+```bash
+TAG=demo-$(date +%H%M%S)
+docker build -t ghcr.io/raghavendra1729-cell/placetrack-frontend:$TAG frontend
+minikube -p placetrack image load ghcr.io/raghavendra1729-cell/placetrack-frontend:$TAG
+helm upgrade placetrack helm/placetrack -n placetrack --reuse-values --set image.tag=$TAG --wait
+```
+
+The backend image must also exist under that tag, so also tag it (`docker tag ...placetrack-backend:local ...placetrack-backend:$TAG` then `minikube image load`). Explain that in the real flow CI builds and pushes the SHA-tagged images.
