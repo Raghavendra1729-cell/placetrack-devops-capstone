@@ -60,4 +60,4 @@ For the live demo I change a visible string in the React app, commit and push. G
 
 ## Slide 15: Lessons
 
-Four things I will remember. A passing build is not a secure build: Trivy failed my first images and I had to fix real vulnerabilities. nginx resolves upstream names once at startup, which caused a crash loop until I used a runtime resolver. Running does not mean ready, and ready does not mean reachable. And secrets are generated at deploy time, never committed. Thank you.
+Four things I will remember. A passing build is not a secure build: Trivy failed my first images and I had to fix real vulnerabilities. nginx resolves upstream names once at startup, which caused a crash loop until I used a runtime resolver, and a review then showed its resolver ignores search domains, so I switched to the full service DNS name and the 502 became a 200. Running does not mean ready, and ready does not mean reachable. And secrets are generated at deploy time, never committed. Thank you.
