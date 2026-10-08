@@ -107,7 +107,15 @@ terraform destroy
 
 ![terraform plan](images/08-tf-plan.png)
 
-Status: `init`, `validate` and `plan` are done. The apply output, the AWS Console screenshots (VPC and EKS) and the destroy output are still to add.
+The first apply created the VPC and the cluster, but the node group failed: this account's free plan rejected `t3.medium` ("not eligible for Free Tier"). I changed the node type to `t3.small` and applied again. The result:
+
+![terraform apply](images/09-tf-apply.png)
+
+Both nodes are Ready and the system pods (CNI, CoreDNS, kube-proxy) are running:
+
+![EKS nodes](images/12b-eks-nodes.png)
+
+Status: the AWS Console screenshots (VPC and EKS) and the `terraform destroy` output are still to add.
 
 ## M8 Kubernetes and Helm
 
