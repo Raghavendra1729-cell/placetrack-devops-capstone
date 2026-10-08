@@ -4,11 +4,11 @@ About 30 to 45 seconds per slide (about 8 minutes), then the live demo.
 
 ## Slide 1: Title
 
-Hello, I am Raghavendra. This is my DevOps capstone: PlaceTrack, a job application tracker. The app is small on purpose; the project is about everything around it - testing, containers, CI/CD, security scanning, Terraform, Kubernetes with Helm, and monitoring.
+Hello, I am Raghavendra. This is my DevOps capstone: PlaceTrack, a job application tracker. The app is small on purpose. The project is everything around it: testing, containers, CI/CD, security scanning, Terraform, Kubernetes with Helm, and monitoring.
 
 ## Slide 2: What I built
 
-PlaceTrack lets me track every job application. The interesting part is the path: code goes through GitHub Actions for tests, builds and a security scan, images go to a registry tagged with the commit, Terraform builds the AWS network and cluster, Helm deploys, and Prometheus and Grafana watch it. Each module of the course maps to one piece of this chain, and every screenshot in this deck is a real capture.
+PlaceTrack lets me track every job application. Code goes through GitHub Actions for tests, builds and a security scan, images go to a registry tagged with the commit, Terraform builds the AWS network and cluster, Helm deploys, and Prometheus and Grafana watch it. Every screenshot in this deck is a real capture.
 
 ## Slide 3: M1 Application
 
@@ -28,11 +28,11 @@ The backend and frontend images both run as non-root users. The frontend Dockerf
 
 ## Slide 7: M5 CI/CD
 
-The workflow runs on every push to main. It runs pytest, builds the frontend, builds both Docker images, scans them with Trivy, and only then pushes them to GitHub Container Registry, tagged with the commit SHA instead of latest. If a test fails or Trivy finds a fixable high or critical vulnerability, nothing is published. I hardened the workflow so third-party actions are pinned to exact commits and only the image job can write packages. I have not pushed the repository yet, so I ran each of these steps locally; the live run link comes after the first push.
+The workflow runs on every push to main. It runs pytest, builds the frontend, builds both Docker images, scans them with Trivy, and only then pushes them to GitHub Container Registry, tagged with the commit SHA instead of latest. If a test fails or Trivy finds a fixable high or critical vulnerability, nothing is published. The actions are pinned to exact commits and only the image job can write packages. I have not pushed the repository yet, so I ran each of these steps locally; the live run link comes after the first push.
 
 ## Slide 8: M6 Trivy
 
-Trivy scans both images for fixable high and critical vulnerabilities and fails the pipeline if it finds any. My first scan really failed: the backend had three high findings in Starlette, for example CVE-2025-62727, where crafted Range headers can cause denial of service, and the old nginx base image had forty-two high and critical findings in system libraries such as OpenSSL. I fixed them by upgrading FastAPI, which brings a patched Starlette, and moving to a current nginx image. Both scans now exit with zero. A clean scan means no fixable high or critical vulnerability exists in the image at scan time, which is why it runs on every build.
+Trivy scans both images for fixable high and critical vulnerabilities and fails the pipeline if it finds any. My first scan failed: the backend had three high findings in Starlette, for example CVE-2025-62727, where crafted Range headers can cause denial of service, and the old nginx base image had forty-two high and critical findings in system libraries such as OpenSSL. I fixed them by upgrading FastAPI, which brings a patched Starlette, and moving to a current nginx image. Both scans now exit with zero. A clean scan means no fixable high or critical vulnerability exists in the image at scan time, which is why it runs on every build.
 
 ## Slide 9: M7 Terraform
 
@@ -60,4 +60,4 @@ For the live demo I change a visible string in the React app, commit and push. G
 
 ## Slide 15: Lessons
 
-Four things I will remember. A passing build is not a secure build: Trivy failed my first images and I had to fix real vulnerabilities. nginx resolves upstream names once at startup, which caused a crash loop until I used a runtime resolver, and a review then showed its resolver ignores search domains, so I switched to the full service DNS name and the 502 became a 200. Running does not mean ready, and ready does not mean reachable. And secrets are generated at deploy time, never committed. Thank you.
+Four things I will remember. A passing build is not a secure build: Trivy failed my first images and I had to fix real vulnerabilities. nginx resolves upstream names once at startup, which caused a crash loop until I used a runtime resolver, and a request through the frontend service then showed that the resolver ignores search domains, so I switched to the full service DNS name and the 502 became a 200. Running does not mean ready, and ready does not mean reachable. And secrets are generated at deploy time, never committed. Thank you.
