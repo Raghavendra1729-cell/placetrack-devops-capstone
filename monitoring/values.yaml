@@ -1,0 +1,11 @@
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    retention: 6h
+    resources: { requests: { cpu: 100m, memory: 400Mi } }
+grafana:
+  adminPassword: REMOVED-demo-value   # demo-only password for a throwaway cluster
+  sidecar:
+    dashboards: { enabled: true, label: grafana_dashboard }
+alertmanager:
+  enabled: false
