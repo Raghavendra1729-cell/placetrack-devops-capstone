@@ -125,7 +125,7 @@ A clean scan means no fixable HIGH or CRITICAL vulnerability is in the image at 
 
 ## M7: Terraform
 
-`terraform/` creates a VPC (`10.0.0.0/16`) with two public subnets in two availability zones and an EKS cluster with a managed node group of two `t3.medium` nodes. There is no NAT gateway, to keep the cost down. The EBS CSI driver has its own IAM role so only its service account gets volume permissions. The cluster API is limited to my IP through the required variable `api_access_cidrs`, kept in the git-ignored `terraform.tfvars`. Terraform uses the AWS CLI profile, so no credentials are in the repository.
+`terraform/` creates a VPC (`10.0.0.0/16`) with two public subnets in two availability zones and an EKS cluster with a managed node group of two `t3.small` nodes. There is no NAT gateway, to keep the cost down. The EBS CSI driver has its own IAM role so only its service account gets volume permissions. The cluster API is limited to my IP through the required variable `api_access_cidrs`, kept in the git-ignored `terraform.tfvars`. Terraform uses the AWS CLI profile, so no credentials are in the repository.
 
 ```bash
 cd terraform
