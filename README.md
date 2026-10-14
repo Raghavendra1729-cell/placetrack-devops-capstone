@@ -80,6 +80,16 @@ docker compose up --build      # open http://localhost:3000
 
 The workflow `.github/workflows/ci-cd.yml` runs on every push to `main`. It runs pytest, builds the frontend, builds both Docker images, scans them with Trivy and pushes them to GHCR as `ghcr.io/raghavendra1729-cell/placetrack-<service>:<commit SHA>`. If a test fails or Trivy finds a HIGH or CRITICAL problem, the pipeline stops and nothing is pushed. The images are tagged with the commit SHA and not `latest`.
 
+The first run on GitHub passed all four jobs: [Actions run](https://github.com/Raghavendra1729-cell/placetrack-devops-capstone/actions/runs/38557147918).
+
+![Actions run](images/23-actions-run.png)
+
+Both images are public in GHCR with the commit SHA as the tag:
+
+![GHCR backend](images/24-ghcr-backend.png)
+
+![GHCR frontend](images/25-ghcr-frontend.png)
+
 ## M6 Trivy
 
 Trivy scans the backend and frontend images in the pipeline and fails on fixable HIGH or CRITICAL findings.
@@ -89,6 +99,10 @@ My first scan failed. The backend had 3 HIGH findings in Starlette 0.41.3 (for e
 ![Trivy before and after](images/05-trivy-before.png)
 
 ![Trivy clean](images/07-trivy-clean.png)
+
+This is the same scan in the pipeline. GitHub only shows job logs to signed-in users, so the image is the text of the Trivy step taken with `gh run view --log`. Both images show 0 vulnerabilities.
+
+![Trivy in the pipeline](images/26-trivy-pipeline.png)
 
 ## M7 Terraform
 
