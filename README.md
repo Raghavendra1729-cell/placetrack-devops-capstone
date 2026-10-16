@@ -5,7 +5,7 @@ DevOps final project by Raghavendra (24BCS10250)
 PlaceTrack is a small web app for tracking job and internship applications. You add a company and a role, then move the application through applied, interview, offer or rejected. I built it because I was applying for internships and kept losing track of them in a spreadsheet. The app is simple on purpose. Most of my time went into everything around it: tests, Docker, a CI/CD pipeline with a security scan, Terraform on AWS, Kubernetes with Helm, and monitoring.
 
 * Repository: https://github.com/Raghavendra1729-cell/placetrack-devops-capstone
-* My presentation: [open it in Google Slides](https://docs.google.com/presentation/d/1nObb-1njzx3Gw9raF8tN1dGPw5M0CGrD/edit?usp=sharing), or download the file [PlaceTrack-Capstone.pptx](PlaceTrack-Capstone.pptx). I will do the live demo (commit a change, watch the pipeline run, see the deployment update) during the presentation.
+* My presentation: [open it in Google Slides](https://docs.google.com/presentation/d/1nObb-1njzx3Gw9raF8tN1dGPw5M0CGrD/edit?usp=sharing), or download the file [PlaceTrack-Capstone.pptx](PlaceTrack-Capstone.pptx). The video of my presentation and live demo is linked in the Google Slides deck.
 * Green pipeline run, all five jobs including the deploy: [Actions run](https://github.com/Raghavendra1729-cell/placetrack-devops-capstone/actions/runs/38878841957)
 
 ## How it all fits together
