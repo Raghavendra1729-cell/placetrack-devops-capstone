@@ -1,6 +1,6 @@
 # Troubleshooting exercises
 
-I broke two things on purpose in the `placetrack` namespace of the local minikube cluster and fixed them with the same five steps each time: identify, investigate, root cause, fix, verify. The output below is from the real runs, and the screenshots are in [`images/`](../images/).
+I broke two things on purpose in the `placetrack` namespace of the local minikube cluster and fixed them with the same five steps each time: identify, investigate, root cause, fix, verify. The output below is from the real runs. Screenshots: [bad image tag](../images/18-ts-image-error.png) and [selector mismatch and fix](../images/19-ts-selector.png).
 
 ## 1. Bad image tag (`broken-image.yaml`)
 
