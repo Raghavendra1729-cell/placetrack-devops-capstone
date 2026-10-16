@@ -2,7 +2,9 @@
 
 DevOps final project by Raghavendra (24BCS10250)
 
-PlaceTrack is a small web app to keep track of job and internship applications. You add a company and a role, and move it through applied, interview, offer or rejected. The app is simple. The main work in this project is the DevOps part around it: tests, Docker, a CI pipeline with a security scan, Terraform, Kubernetes with Helm, and monitoring.
+For this project I built PlaceTrack, a small app to keep track of job and internship applications. You add a company and a role, and move it through applied, interview, offer or rejected. The app itself is simple on purpose. Most of my time went into the DevOps side: tests, Docker, a CI/CD pipeline with a security scan, Terraform on AWS, Kubernetes with Helm, and monitoring.
+
+My presentation for the demo is here: [PlaceTrack-Capstone.pptx](PlaceTrack-Capstone.pptx)
 
 ```mermaid
 flowchart LR
@@ -36,20 +38,24 @@ troubleshooting/    two broken manifests and how I fixed them
 scripts/            deploy and load test scripts
 .github/workflows/  CI/CD pipeline
 images/             screenshots
-PlaceTrack-Capstone.pptx   presentation
+PlaceTrack-Capstone.pptx   my presentation
 ```
 
-## M1 Application
+## M1: The app
 
-The backend has these endpoints: `GET/POST /api/jobs`, `GET/PUT/DELETE /api/jobs/{id}`, `GET /api/jobs/stats`, `/health`, `/ready` and `/metrics`. The `jobs` table is created by the Alembic migration in `backend/alembic/versions/`. The API docs are at `/docs`.
+The backend is FastAPI with Postgres. I wrote these endpoints: `GET/POST /api/jobs`, `GET/PUT/DELETE /api/jobs/{id}` and `GET /api/jobs/stats`. There are also `/health`, `/ready` and `/metrics` for Kubernetes and Prometheus. The `jobs` table is created by an Alembic migration (`backend/alembic/versions/`), and the API docs are at `/docs`.
+
+The frontend is React. It shows the counts at the top, a filter for each status, and a table where I can edit or delete an application.
 
 ![App](images/01-app-compose.png)
 
+I also made sure it works on a small screen:
+
 ![App on a phone](images/01b-app-mobile.png)
 
-## M2 Tests
+## M2: Tests
 
-There are 16 pytest tests. They cover all the endpoints, validation errors, 404s, `/metrics`, and `/ready` returning 503 when the database is down. The tests use an in-memory SQLite database instead of Postgres. The config is in `backend/pytest.ini`.
+I wrote 16 pytest tests. They check every endpoint, bad input, missing ids (404), `/metrics`, and that `/ready` gives 503 when the database is down. The tests use an in-memory SQLite database, so they never touch the real Postgres. The settings are in `backend/pytest.ini`.
 
 ```bash
 cd backend
@@ -60,15 +66,15 @@ pytest -v
 
 ![pytest](images/02-pytest.png)
 
-## M3 Git
+## M3: Git
 
-I made small commits with clear messages. `.gitignore` covers `.env`, `__pycache__`, `node_modules`, `.venv` and Terraform state. Gitleaks found no secrets in the history.
+I worked in small commits and wrote what each one changes in the message. `.gitignore` keeps `.env`, `__pycache__`, `node_modules`, `.venv` and the Terraform state out of the repo. I ran Gitleaks on the history and it found no secrets.
 
 ![git log](images/04-git-log.png)
 
-## M4 Docker
+## M4: Docker
 
-The backend image runs as user 10001. The frontend Dockerfile is multi-stage (Node builds the app, nginx serves it) and runs as user 101. Docker Compose starts postgres, the backend and the frontend.
+Both images run as a normal user, not root: the backend as user 10001 and the frontend as user 101. The frontend Dockerfile has two stages. Node builds the React app and only the built files go into the nginx image. With Docker Compose the whole app (postgres, backend, frontend) starts with one command:
 
 ```bash
 docker compose up --build      # open http://localhost:3000
@@ -76,37 +82,37 @@ docker compose up --build      # open http://localhost:3000
 
 ![docker compose](images/03-compose-up.png)
 
-## M5 CI/CD
+## M5: CI/CD
 
-The workflow `.github/workflows/ci-cd.yml` runs on every push to `main`. It runs pytest, builds the frontend, builds both Docker images, scans them with Trivy and pushes them to GHCR as `ghcr.io/raghavendra1729-cell/placetrack-<service>:<commit SHA>`. If a test fails or Trivy finds a fixable HIGH or CRITICAL problem, the pipeline stops and nothing is pushed. The images are tagged with the commit SHA and not `latest`.
+My workflow is `.github/workflows/ci-cd.yml` and it runs on every push to `main`. First it runs pytest and builds the frontend. If both pass, it builds the two Docker images, scans them with Trivy and pushes them to GHCR as `ghcr.io/raghavendra1729-cell/placetrack-<service>:<commit SHA>`. I tag every image with the commit SHA and not `latest`, so I always know which code is running. If a test fails or Trivy finds a fixable HIGH or CRITICAL problem, the pipeline stops and nothing is pushed.
 
-After the images are pushed, the `deploy` job runs on a self-hosted runner on my laptop and deploys the new SHA to minikube with Helm. It only runs on `main` when the repository variable `DEPLOY_ENABLED` is `true`, so the pipeline still passes when the runner is off.
+I also added a `deploy` job. It runs on a self-hosted runner on my laptop and does a Helm upgrade on minikube with the new SHA, so a push updates the running app by itself. I turn it on with the repository variable `DEPLOY_ENABLED` only when my laptop is ready, otherwise the job is skipped.
 
 This run passed all five jobs, including the deploy: [Actions run](https://github.com/Raghavendra1729-cell/placetrack-devops-capstone/actions/runs/38878841957).
 
 ![Actions run](images/05-actions-run.png)
 
-Both images are public in GHCR, tagged with the commit SHA:
+Both images are public in GHCR with the commit SHA as the tag:
 
 ![GHCR backend](images/06-ghcr-backend.png)
 
 ![GHCR frontend](images/07-ghcr-frontend.png)
 
-## M6 Trivy
+## M6: Trivy
 
-Trivy scans the backend and frontend images in the pipeline and fails the job on fixable HIGH or CRITICAL findings.
+Trivy scans both images in the pipeline and fails the job on fixable HIGH or CRITICAL findings.
 
-My first scan failed. The backend had 3 HIGH findings in Starlette 0.41.3 (for example CVE-2025-62727, a denial of service with crafted `Range` headers). The old Alpine nginx image in the frontend had 42 HIGH and CRITICAL findings in OpenSSL, libexpat and libxml2. I upgraded FastAPI, which brings a newer Starlette without these CVEs, and moved to `nginx-unprivileged:1.30.5-alpine`. After that both images scan clean. A clean result only means there is no fixable HIGH or CRITICAL vulnerability at the time of the scan. New CVEs come out all the time, so the scan runs on every build.
+My first scan actually failed. The backend had 3 HIGH findings in Starlette 0.41.3, for example CVE-2025-62727, where crafted `Range` headers can be used for a denial of service. The old Alpine nginx image in the frontend had 42 HIGH and CRITICAL findings in OpenSSL, libexpat and libxml2. I upgraded FastAPI, which pulled in a newer Starlette without these problems, and moved the frontend to `nginx-unprivileged:1.30.5-alpine`. After that both images scanned clean. A clean scan does not mean the image is safe forever, only that nothing fixable was known on that day, which is why it runs on every build.
 
-The Trivy step from the run above, for both images:
+The Trivy step from the run above:
 
 ![Trivy backend](images/08-trivy-backend.png)
 
 ![Trivy frontend](images/08b-trivy-frontend.png)
 
-## M7 Terraform
+## M7: Terraform
 
-`terraform/` creates a VPC with two public subnets in two availability zones and an EKS 1.35 cluster with a managed node group of two `t3.small` nodes. The API endpoint is limited to my IP with the `api_access_cidrs` variable, which I set in a `terraform.tfvars` file that is not committed. No credentials are stored in the repo.
+In `terraform/` I describe the AWS setup: a VPC with two public subnets in two availability zones, and an EKS 1.35 cluster with a node group of two `t3.small` nodes, in ap-south-1. Only my IP can reach the cluster API (`api_access_cidrs`). I keep that value in `terraform.tfvars`, which is not committed, and there are no AWS keys in the repo.
 
 ```bash
 cd terraform
@@ -117,11 +123,11 @@ terraform apply tfplan
 terraform destroy
 ```
 
-The plan adds 49 resources:
+The plan wants to create 49 resources:
 
 ![terraform plan](images/09-tf-plan.png)
 
-After `terraform apply`, the AWS Console in ap-south-1 shows the VPC with its two public subnets, the EKS cluster and its two nodes:
+After `terraform apply` I checked everything in the AWS Console: the VPC with its two subnets, the cluster, and the two nodes in Ready state.
 
 ![AWS VPC](images/10-aws-vpc.png)
 
@@ -129,13 +135,13 @@ After `terraform apply`, the AWS Console in ap-south-1 shows the VPC with its tw
 
 ![AWS EKS nodes](images/11b-aws-eks-nodes.png)
 
-After the screenshots I ran `terraform destroy`, which removed all 49 resources:
+EKS costs money every hour, so after the screenshots I ran `terraform destroy`. It removed all 49 resources, and I checked that no cluster or VPC was left:
 
 ![terraform destroy](images/12-tf-destroy.png)
 
-## M8 Kubernetes and Helm
+## M8: Kubernetes and Helm
 
-The Helm chart in `helm/placetrack` creates the backend and frontend (2 replicas each), ClusterIP services and an Ingress for the host `placetrack.local` (`/` goes to the frontend and `/api` to the backend). It also creates Postgres, a Job for the migration and an HPA, all in the `placetrack` namespace, and it runs the images from GHCR. I ran the chart on a local minikube cluster and not on EKS, to keep the AWS cost low.
+I packed the app into a Helm chart (`helm/placetrack`). It creates the backend and the frontend with 2 replicas each, ClusterIP services, Postgres, a Job that runs the migration, an HPA for the backend, and an Ingress for `placetrack.local` that sends `/` to the frontend and `/api` to the backend. To keep the AWS bill low I ran the chart on minikube on my laptop, using the images the pipeline pushed to GHCR.
 
 ```bash
 minikube start -p placetrack --driver=docker --cpus=4 --memory=5500
@@ -146,19 +152,19 @@ helm upgrade --install placetrack helm/placetrack -n placetrack --set image.tag=
 kubectl -n ingress-nginx port-forward svc/ingress-nginx-controller 8080:80      # open http://placetrack.local:8080
 ```
 
-The host name needs this line in `/etc/hosts`: `127.0.0.1 placetrack.local`.
+For the host name I added `127.0.0.1 placetrack.local` to `/etc/hosts`.
 
 ![pods, services, helm, ingress, hpa](images/13-k8s-pods-svc-helm.png)
 
 ![app through the ingress](images/14-app-ingress.png)
 
-During the load test the HPA scaled the backend from 2 to 3 pods because CPU went above the 60% target:
+When I ran the load test, CPU went above the 60% target and the HPA added a third backend pod:
 
 ![hpa scale out](images/13b-hpa.png)
 
-## M9 Monitoring
+## M9: Monitoring
 
-The backend exposes `/metrics`. `monitoring/install.sh` installs Prometheus and Grafana, and the ServiceMonitor in the chart makes Prometheus scrape the backend.
+The backend exposes `/metrics`. `monitoring/install.sh` installs Prometheus and Grafana, and the ServiceMonitor in my chart tells Prometheus to scrape the backend pods. I made a small Grafana dashboard with requests per second, p95 latency, errors and the number of backend pods.
 
 ```bash
 ./monitoring/install.sh
@@ -170,13 +176,13 @@ helm upgrade placetrack helm/placetrack -n placetrack --reuse-values --set servi
 
 ![prometheus targets](images/16-prom-targets.png)
 
-The Grafana panel "Backend pods up" shows 3 because the HPA had added a third pod:
+The dashboard shows 3 pods because the HPA had just scaled up:
 
 ![grafana](images/17-grafana.png)
 
 ## Troubleshooting
 
-I broke two things on purpose and fixed them: a wrong image tag (`ImagePullBackOff`) and a Service selector typo (no endpoints). The steps and the output are in [troubleshooting/](troubleshooting/README.md).
+I broke two things on purpose to practise finding problems: a wrong image tag (`ImagePullBackOff`) and a Service with a wrong selector (no endpoints). How I found and fixed each one is in [troubleshooting/](troubleshooting/README.md).
 
 ![ImagePullBackOff](images/18-ts-image-error.png)
 
@@ -184,16 +190,16 @@ I broke two things on purpose and fixed them: a wrong image tag (`ImagePullBackO
 
 ## Live demo
 
-1. Show the running app at `http://placetrack.local:8080`.
+1. Open the app at `http://placetrack.local:8080`.
 2. Change the subtitle in `frontend/src/App.jsx`, then `git commit` and `git push`.
-3. Show the pipeline run in GitHub Actions: test, frontend, image and then deploy.
-4. The deploy job runs `scripts/deploy.sh` with the commit SHA on my laptop. Show the pods being replaced with `kubectl -n placetrack get pods -w`.
-5. Refresh the browser to see the change.
+3. Watch the pipeline in GitHub Actions: test, frontend, image and then deploy.
+4. The deploy job runs `scripts/deploy.sh` with the commit SHA on my laptop. Watch the pods change with `kubectl -n placetrack get pods -w`.
+5. Refresh the browser and the new subtitle is there.
 
 ## What I learned
 
-* A build that passes can still have security problems. Trivy failed my first images.
-* nginx looks up the backend name only once at startup, and its resolver does not use the DNS search domains. Using the full name `<service>.<namespace>.svc.cluster.local` fixed the 502 error.
-* A pod can be Running but not Ready. My backend pods stayed 0/1 until they could reach Postgres, because `/ready` checks the database.
-* The database password Secret has to stay after `helm uninstall`, because the volume keeps the old password.
-* Passwords and keys are generated when deploying and are never committed.
+* A build that passes can still be insecure. Trivy failed my first images even though everything worked.
+* nginx looks up the backend name only once when it starts, and its resolver does not use the Kubernetes search domains. I got a 502 until I used the full name `<service>.<namespace>.svc.cluster.local`.
+* A pod can be Running but not Ready. My backend pods stayed at 0/1 until they could reach Postgres, because `/ready` checks the database.
+* The database password Secret has to survive `helm uninstall`, because the Postgres volume still has the old password.
+* Passwords are generated at deploy time and never committed.
