@@ -184,8 +184,6 @@ I broke two things on purpose and fixed them: a wrong image tag (`ImagePullBackO
 
 ## Live demo
 
-Before the demo, minikube and the runner are started and the repository variable `DEPLOY_ENABLED` is `true`.
-
 1. Show the running app at `http://placetrack.local:8080`.
 2. Change the subtitle in `frontend/src/App.jsx`, then `git commit` and `git push`.
 3. Show the pipeline run in GitHub Actions: test, frontend, image and then deploy.
