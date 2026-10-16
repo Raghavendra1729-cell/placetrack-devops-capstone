@@ -80,6 +80,8 @@ docker compose up --build      # open http://localhost:3000
 
 The workflow `.github/workflows/ci-cd.yml` runs on every push to `main`. It runs pytest, builds the frontend, builds both Docker images, scans them with Trivy and pushes them to GHCR as `ghcr.io/raghavendra1729-cell/placetrack-<service>:<commit SHA>`. If a test fails or Trivy finds a HIGH or CRITICAL problem, the pipeline stops and nothing is pushed. The images are tagged with the commit SHA and not `latest`.
 
+After the images are pushed, the `deploy` job runs on a self-hosted runner on my laptop and deploys the new SHA to minikube with Helm. It only runs on `main` when the repository variable `DEPLOY_ENABLED` is `true`, so the pipeline still passes when the runner is off.
+
 The first run on GitHub passed all four jobs: [Actions run](https://github.com/Raghavendra1729-cell/placetrack-devops-capstone/actions/runs/38557147918).
 
 ![Actions run](images/23-actions-run.png)
@@ -141,7 +143,7 @@ After the screenshots I ran `terraform destroy`:
 
 ## M8 Kubernetes and Helm
 
-The Helm chart in `helm/placetrack` creates the backend and frontend (2 replicas each), ClusterIP services, an Ingress (`/` goes to the frontend and `/api` to the backend), Postgres, a Job for the migration and an HPA, all in the `placetrack` namespace.
+The Helm chart in `helm/placetrack` creates the backend and frontend (2 replicas each), ClusterIP services, an Ingress for the host `placetrack.local` (`/` goes to the frontend and `/api` to the backend), Postgres, a Job for the migration and an HPA, all in the `placetrack` namespace.
 
 ```bash
 minikube start -p placetrack --driver=docker --cpus=4 --memory=5500
@@ -151,9 +153,11 @@ docker build -t ghcr.io/raghavendra1729-cell/placetrack-backend:local backend
 docker build -t ghcr.io/raghavendra1729-cell/placetrack-frontend:local frontend
 minikube -p placetrack image load ghcr.io/raghavendra1729-cell/placetrack-backend:local ghcr.io/raghavendra1729-cell/placetrack-frontend:local
 kubectl apply -f k8s/namespace.yaml
-helm upgrade --install placetrack helm/placetrack -n placetrack --set ingress.host= --wait
-kubectl -n ingress-nginx port-forward svc/ingress-nginx-controller 8080:80      # open http://localhost:8080
+helm upgrade --install placetrack helm/placetrack -n placetrack --wait
+kubectl -n ingress-nginx port-forward svc/ingress-nginx-controller 8080:80      # open http://placetrack.local:8080
 ```
+
+The host name needs this line in `/etc/hosts`: `127.0.0.1 placetrack.local`.
 
 ![pods](images/13-kubectl-pods.png)
 
@@ -191,10 +195,12 @@ I broke two things on purpose and fixed them: a wrong image tag (`ImagePullBackO
 
 ## Live demo
 
-1. Show the running app at `http://localhost:8080`.
+Before the demo, minikube and the runner are started and the repository variable `DEPLOY_ENABLED` is `true`.
+
+1. Show the running app at `http://placetrack.local:8080`.
 2. Change the subtitle in `frontend/src/App.jsx`, then `git commit` and `git push`.
-3. Show the pipeline run in GitHub Actions.
-4. Deploy the new image with `scripts/deploy.sh <commit SHA>`.
+3. Show the pipeline run in GitHub Actions: test, frontend, image and then deploy.
+4. The deploy job runs `scripts/deploy.sh` with the commit SHA on my laptop. Show the pods being replaced with `kubectl -n placetrack get pods -w`.
 5. Refresh the browser to see the change.
 
 ## What I learned

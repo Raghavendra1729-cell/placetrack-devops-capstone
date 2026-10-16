@@ -21,7 +21,7 @@ postgres:
 
 ingress:
   className: nginx
-  host: ""
+  host: placetrack.local
 
 hpa:
   enabled: true
