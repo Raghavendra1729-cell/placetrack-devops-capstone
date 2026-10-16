@@ -1,6 +1,6 @@
 # Troubleshooting exercises
 
-I broke two things on purpose in the `placetrack` namespace of the local minikube cluster and fixed them with the same five steps each time: identify, investigate, root cause, fix, verify. The output below is from the real runs. Screenshots: [bad image tag](../images/18-ts-image-error.png) and [selector mismatch and fix](../images/19-ts-selector.png).
+I broke two things on purpose in the `placetrack` namespace of the local minikube cluster and fixed them with the same five steps each time: identify, investigate, root cause, fix, verify. Screenshots: [bad image tag](../images/18-ts-image-error.png) and [selector mismatch and fix](../images/19-ts-selector.png).
 
 ## 1. Bad image tag (`broken-image.yaml`)
 
@@ -23,7 +23,7 @@ Warning  Failed   kubelet  Error: ImagePullBackOff
 
 **Root cause.** The manifest points at a tag that does not exist in GHCR (`does-not-exist`), so the kubelet cannot pull it. The container never starts, so it is a manifest problem, not an application bug.
 
-**Fix.** Point the Deployment at a tag the pipeline really pushed (the commit SHA):
+**Fix.** Point the Deployment at a tag the pipeline pushed (the commit SHA):
 
 ```
 $ kubectl -n placetrack set image deploy/tb-image app=ghcr.io/raghavendra1729-cell/placetrack-backend:1ac201e89e13c9bae4d410cdfbc93283a0365b50
