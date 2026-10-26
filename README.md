@@ -6,7 +6,7 @@ PlaceTrack is a small web app for tracking job and internship applications. You 
 
 * Repository: https://github.com/Raghavendra1729-cell/placetrack-devops-capstone
 * Presentation (PPT): [Open in Google Slides](https://docs.google.com/presentation/d/1nObb-1njzx3Gw9raF8tN1dGPw5M0CGrD/edit?usp=sharing) or download the file [PlaceTrack-Capstone.pptx](demo/PlaceTrack-Capstone.pptx)
-* Presentation & Demo Video (also listed in [demo/](demo/)): [Watch on Google Drive](https://drive.google.com/file/d/14yKErtK3R0B8W2WnvfV_GDyDspRdKjwV/view?usp=sharing)
+* Presentation & Demo Video (also in [demo/video.md](demo/video.md)): [Watch on Google Drive](https://drive.google.com/file/d/14yKErtK3R0B8W2WnvfV_GDyDspRdKjwV/view?usp=sharing)
 * Green pipeline run, all five jobs including the deploy: [Actions run](https://github.com/Raghavendra1729-cell/placetrack-devops-capstone/actions/runs/38878841957)
 
 ## How it all fits together
