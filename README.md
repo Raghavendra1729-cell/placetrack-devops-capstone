@@ -5,8 +5,8 @@ DevOps final project by Raghavendra (24BCS10250)
 PlaceTrack is a small web app for tracking job and internship applications. You add a company and a role, then move the application through applied, interview, offer or rejected. I built it because I was applying for internships and kept losing track of them in a spreadsheet. The app is simple on purpose. Most of my time went into everything around it: tests, Docker, a CI/CD pipeline with a security scan, Terraform on AWS, Kubernetes with Helm, and monitoring.
 
 * Repository: https://github.com/Raghavendra1729-cell/placetrack-devops-capstone
-* Presentation (PPT): [Open in Google Slides](https://docs.google.com/presentation/d/1nObb-1njzx3Gw9raF8tN1dGPw5M0CGrD/edit?usp=sharing) or download the file [PlaceTrack-Capstone.pptx](PlaceTrack-Capstone.pptx)
-* Presentation & Demo Video: [Watch on Google Drive](https://drive.google.com/file/d/14yKErtK3R0B8W2WnvfV_GDyDspRdKjwV/view?usp=sharing)
+* Presentation (PPT): [Open in Google Slides](https://docs.google.com/presentation/d/1nObb-1njzx3Gw9raF8tN1dGPw5M0CGrD/edit?usp=sharing) or download the file [PlaceTrack-Capstone.pptx](demo/PlaceTrack-Capstone.pptx)
+* Presentation & Demo Video (also listed in [demo/](demo/)): [Watch on Google Drive](https://drive.google.com/file/d/14yKErtK3R0B8W2WnvfV_GDyDspRdKjwV/view?usp=sharing)
 * Green pipeline run, all five jobs including the deploy: [Actions run](https://github.com/Raghavendra1729-cell/placetrack-devops-capstone/actions/runs/38878841957)
 
 ## How it all fits together
@@ -296,7 +296,7 @@ No endpoints, the two different labels, and the endpoint after the patch.
 
 ## M10: Live demo
 
-This README and my presentation ([Google Slides](https://docs.google.com/presentation/d/1nObb-1njzx3Gw9raF8tN1dGPw5M0CGrD/edit?usp=sharing) or [PlaceTrack-Capstone.pptx](PlaceTrack-Capstone.pptx)) explain what I built. For the demo I change the app, push it and watch the pipeline deploy it. Before I start, minikube is running, the self-hosted runner on my laptop is online, the ingress port-forward from M8 is open, and I turn on the repository variable `DEPLOY_ENABLED` (set to `true`).
+This README and my presentation ([Google Slides](https://docs.google.com/presentation/d/1nObb-1njzx3Gw9raF8tN1dGPw5M0CGrD/edit?usp=sharing) or [PlaceTrack-Capstone.pptx](demo/PlaceTrack-Capstone.pptx)) explain what I built. For the demo I change the app, push it and watch the pipeline deploy it. Before I start, minikube is running, the self-hosted runner on my laptop is online, the ingress port-forward from M8 is open, and I turn on the repository variable `DEPLOY_ENABLED` (set to `true`).
 
 1. Open the app at `http://placetrack.local:8080`.
 2. Change the subtitle in `frontend/src/App.jsx` ("Track every job application in one place"), then `git commit` and `git push` to `main`.
